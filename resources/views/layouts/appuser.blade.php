@@ -75,6 +75,7 @@
                     <a href="{{ route('courses.index') }}" class="nav-item nav-link {{ Request::routeIs('courses.index') ? 'active text-primary' : '' }}">Pelatihan</a>
                     <a href="{{ url('contact') }}" class="nav-item nav-link {{ Request::is('contact') ? 'active text-primary' : '' }}">Kontak</a>
                     <a href="{{ route('complaints.index') }}" class="nav-item nav-link {{ Request::is('complaints') ? 'active text-primary' : '' }}">Pengaduan</a>
+                    <a href="{{ route('pelaporan') }}" class="nav-item nav-link {{ Request::is('pelaporan') ? 'active text-primary' : '' }}">Pelaporan</a>
                 </div>
             </div>
             <div class="d-none d-lg-block">

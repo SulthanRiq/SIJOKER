@@ -9,15 +9,12 @@ class Complaint extends Model
     protected $fillable = [
         'questioner_id',
         'title',
+        'question',
         'responsible_id',
+        'answer',
         'likes',
         'status',
     ];
-
-    public function details()
-    {
-        return $this->hasMany(ComplaintDetail::class);
-    }
 
     public function questioner()
     {
@@ -31,7 +28,7 @@ class Complaint extends Model
 
     public function likes()
     {
-        return $this->hasMany(Like::class);
+        return $this->hasMany(ComplaintDetail::class);
     }
 
     public function getLikesCountAttribute()

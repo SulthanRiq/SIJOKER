@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Complaint;
-use App\Models\ComplaintDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -48,10 +47,10 @@ class ComplaintController extends Controller
         ]);
     }
 
-    public function store(Request $request, $id = null)
+    public function store(Request $request)
     {
         $request->validate([
-            'title' => 'nullable',
+            'title' => 'required',
             'question' => 'required',
         ]);
 
@@ -67,34 +66,20 @@ class ComplaintController extends Controller
             return redirect()->back()->with('error', 'Anda tidak dapat mengajukan Pengaduan baru hingga setidaknya satu telah dijawab.');
         }
 
-        $complaint = Complaint::find($id);
+        Complaint::create([
+            'questioner_id' => Auth::id(),
+            'title' => $request->title,
+            'question' => $request->question,
+        ]);
 
-        if (!$complaint) {
-            $complaint = Complaint::create([
-                'questioner_id' => Auth::id(),
-                'title' => $request->title,
-            ]);
-        }
-        $detailCount = ComplaintDetail::where('complaint_id', $complaint->id)->count();
-
-        if ($detailCount < 3) {
-            ComplaintDetail::create([
-                'complaint_id' => $complaint->id,
-                'question' => $request->question,
-            ]);
-            $complaint->status = 'not answered';
-            $complaint->save();
-
-            return redirect()->back()->with('success', 'Pertanyaan berhasil ditambahkan.');
-        }
-
-        return redirect()->back()->with('error', 'Anda hanya dapat mengajukan maksimal 3 pertanyaan per pengaduan.');
+        return redirect()->back()->with('success', 'Pengaduan berhasil diajukan!');
     }
 
     public function show($id, Request $request)
     {
         $layout = $request->input('layout');
-        $complaint = Complaint::with('details')->findOrFail($id);
+        $complaint = Complaint::findOrFail($id);
+        
         if ($layout == 'admin') {
             return view('admin.complaints.show', compact('complaint'));
         } else {
@@ -105,31 +90,21 @@ class ComplaintController extends Controller
     public function answer(Request $request, $id)
     {
         $request->validate([
-            'answer' => 'required|string|max:1000',
+            'answer' => 'required',
         ]);
 
-        $detail = ComplaintDetail::findOrFail($id);
-        $complaint = Complaint::findOrFail($detail->complaint_id);
+        $complaint = Complaint::findOrFail($id);
 
         if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('super_admin')) {
-            $detail->update([
+            $complaint->update([
+                'responsible_id' => Auth::id(),
                 'answer' => $request->answer,
+                'status' => 'answered',
             ]);
-            if ($complaint->responsible_id === null) {
-                $complaint->update([
-                    'responsible_id' => Auth::id(),
-                    'status' => 'answered',
-                ]);
 
-                return redirect()->back()->with('success', 'Pengaduan berhasil dijawab!');
-            } else {
-                $complaint->update([
-                    'status' => 'answered',
-                ]);
-                return redirect()->back()->with('error', 'Pengaduan ini sudah memiliki penanggung jawab!');
-            }
+            return redirect()->back()->with('success', 'Pengaduan berhasil dijawab!');
         }
-    
+
         return redirect()->back()->with('error', 'Anda tidak diizinkan untuk menjawab Pengaduan ini.');
     }
 

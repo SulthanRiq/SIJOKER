@@ -40,4 +40,8 @@ class HomeController extends Controller
         
         return redirect()->route('home')->with('success', 'Anda berhasil mendaftar ke pelatihan.');
     }
+    public function about() {
+        return view('about');
+    }
+    
 }
