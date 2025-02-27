@@ -20,7 +20,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <span class="toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></span>
-        <a class="navbar-brand mx-3" href="#">DISNAKER</a>
+        <a class="navbar-brand mx-3" href="{{ url('/') }}" class="nav-item nav-link {{ Request::is('/') ? 'active text-primary' : '' }}">DISNAKER</a>
         @php
             $action = match($currentPage ?? '') {
                 'peserta' => route('admin.participant.index'),
@@ -40,7 +40,7 @@
             <img src="{{ Auth::user()->profile && Auth::user()->profile->foto ? asset('storage/' . Auth::user()->profile->foto) : asset('image/default_profile.jpg') }}" alt="Profile Image" class="dropdown-toggle mx-2" data-bs-toggle="dropdown">
             <span class="dropdown-toggle text-white" data-bs-toggle="dropdown">{{ Auth::user()->profile->name }}</span>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i> Profil</a></li>
+                <li><a class="dropdown-item" href="{{ route('profile.index') }}"><i class="fas fa-user"></i> Profil</a></li>
                 <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Pengaturan</a></li>
                 <li>
                     <hr class="dropdown-divider">
@@ -60,6 +60,7 @@
         <a href="{{ route('admin.documents.index') }}"><i class="fas fa-file-text"></i> <span>Dokumen</span></a>
         <a href="{{ route('admin.training_management') }}"><i class="fas fa-chalkboard-teacher"></i> <span>Pelatihan</span></a>
         <a href="{{ route('admin.account_participants') }}"><i class="fas fa-user-cog"></i> <span>Akun</span></a>
+        <a href="{{ route('admin.pelaporan') }}"><i class="fas fa-bullhorn"></i> <span>Pelaporan</span></a>
 
         <!-- Dropdown Pengaduan -->
         <div class="dropdown">

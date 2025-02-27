@@ -40,6 +40,7 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
     Route::post('/remove-participant/{userId}', [AdminController::class, 'removeParticipant'])->name('removeParticipant');
     Route::patch('/participant/{id}/change-role', [AdminController::class, 'changeRole'])->name('change_role');
     Route::get('/account-participants', [AdminController::class, 'accountParticipants'])->name('account_participants');
+    Route::get('/pelaporan_admin', [AdminController::class, 'indexPelaporan'])->name('pelaporan');
     Route::post('/verify-removal/{id}', [AdminController::class, 'verifyRemoval'])->name('verifyRemoval');
 
     Route::get('/withdrawals', [AdminController::class, 'withdrawalRequests'])->name('withdrawals');
@@ -110,6 +111,8 @@ Route::middleware(['auth'])->name('complaints.')->controller(ComplaintController
 });
 
 Route::get('/pelaporan', [PelaporanController::class, 'index'])->name('pelaporan');
+Route::get('/pelaporan/Create', [PelaporanController::class, 'create'])->name('pelaporan.create');
+Route::post('/pelaporan', [PelaporanController::class, 'store'])->name('pelaporan.store');
 // Route::get('/contact', function() {
 //     return view('contact');
 // })->name('contact');

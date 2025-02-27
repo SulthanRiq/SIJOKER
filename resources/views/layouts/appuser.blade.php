@@ -80,7 +80,7 @@
             </div>
             <div class="d-none d-lg-block">
                 @guest
-                    <a href="{{ route('register') }}" class="btn btn-primary py-2 px-4 mr-2">Register</a>
+                    <a href="{{ route('register') }}" class="btn btn-primary py-2 px-4 mr-2">Daftar</a>
                     <a href="{{ route('login') }}" class="btn btn-primary py-2 px-4">Login</a>
                 @else
                     <div class="dropdown">
@@ -89,7 +89,7 @@
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             <a class="dropdown-item" href="{{ route('profile.index') }}">Profil</a>
-                            <a class="dropdown-item" href="#">Pengaturan</a>
+                            <a class="dropdown-item" href="{{ route('admin.dashboard') }}">Pengaturan</a>
                             <div class="dropdown-divider"></div>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: inline;">
                                 @csrf
