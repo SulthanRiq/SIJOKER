@@ -14,7 +14,7 @@
                         <p class="card-text" id="real-time-clock"></p>
                     </div>
                     <div>
-                        <a href="#" class="btn btn-light btn-sm">View Profile</a>
+                        <a href="{{ route('profile.index') }}" class="btn btn-light btn-sm">View Profile</a>
                     </div>
                 </div>
             </div>

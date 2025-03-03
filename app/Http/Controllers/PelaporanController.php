@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Pelaporan;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PelaporanController extends Controller
 {
@@ -73,5 +74,18 @@ class PelaporanController extends Controller
         //dd($pelaporan); // untuk memastikan data berhasil dibuat
     
         return redirect()->back()->with('success', 'Laporan berhasil dikirim.');
+    }
+    public function exportExcel()
+    {
+        // Ambil seluruh data dari tabel pelaporans
+        $data = Pelaporan::all()->toArray();
+
+        // Membuat file Excel dengan nama "Laporan" dan satu sheet "Sheet1"
+        Excel::create('Laporan', function($excel) use ($data) {
+            $excel->sheet('Sheet1', function($sheet) use ($data) {
+                // Mengisi sheet dengan data dalam bentuk array
+                $sheet->fromArray($data);
+            });
+        })->download('xlsx'); // Hilangkan titik      
     }    
 }

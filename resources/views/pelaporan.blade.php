@@ -172,12 +172,12 @@
             <div>
                 <p>Pria</p>
                 <label>
-                    <input type="checkbox" name="waktuKerjaPria[]" value="7 jam/hari dan 40 jam/minggu untuk waktu kerja 6 hari/minggu">
+                    <input type="radio" name="waktuKerjaPria[]" value="7 jam/hari dan 40 jam/minggu untuk waktu kerja 6 hari/minggu">
                     7 jam/hari dan 40 jam/minggu untuk waktu kerja 6 hari/minggu
                 </label>
                 <br>
                 <label>
-                    <input type="checkbox" name="waktuKerjaPria[]" value="8 jam/hari dan 40 jam/minggu untuk waktu kerja 5 hari/minggu">
+                    <input type="radio" name="waktuKerjaPria[]" value="8 jam/hari dan 40 jam/minggu untuk waktu kerja 5 hari/minggu">
                     8 jam/hari dan 40 jam/minggu untuk waktu kerja 5 hari/minggu
                 </label>
             </div>

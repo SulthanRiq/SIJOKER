@@ -113,6 +113,7 @@ Route::middleware(['auth'])->name('complaints.')->controller(ComplaintController
 Route::get('/pelaporan', [PelaporanController::class, 'index'])->name('pelaporan');
 Route::get('/pelaporan/Create', [PelaporanController::class, 'create'])->name('pelaporan.create');
 Route::post('/pelaporan', [PelaporanController::class, 'store'])->name('pelaporan.store');
+Route::get('/export-excel', [PelaporanController::class, 'exportExcel']);
 // Route::get('/contact', function() {
 //     return view('contact');
 // })->name('contact');

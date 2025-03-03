@@ -56,7 +56,6 @@ class CreatePelaporansTable extends Migration
             $table->timestamps();
         });
     }
-
     public function down()
     {
         Schema::dropIfExists('pelaporans');
