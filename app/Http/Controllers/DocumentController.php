@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\Revision;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DocumentController extends Controller
 {
@@ -13,15 +14,24 @@ class DocumentController extends Controller
     {
         $search = $request->input('search');
 
-        // Ambil data documents dengan relasi user, dan lakukan pencarian
-        $documents = Document::with('user')->whereHas('user', function ($query) use ($search) {
+        // Debug: cek apakah relasi berfungsi
+        $documents = Document::with(['user.revisi'])->whereHas('user', function ($query) use ($search) {
             if ($search) {
                 $query->where('name', 'LIKE', "%$search%")
                       ->orWhere('email', 'LIKE', "%$search%");
             }
         })->paginate(10);
 
-        // Manipulasi data untuk hanya mengambil nama file dari setiap dokumen
+        // Debug: cek data yang di-load
+        foreach ($documents as $document) {
+            \Log::info('Document ID: ' . $document->id);
+            \Log::info('User ID: ' . $document->user->id);
+            \Log::info('Revisi exists: ' . ($document->user->revisi ? 'YES' : 'NO'));
+            if ($document->user->revisi) {
+                \Log::info('Revisi message: ' . $document->user->revisi->revisi_message);
+            }
+        }
+
         $documents->transform(function ($document) {
             $document->ktp_filename = $document->ktp ? basename($document->ktp) : null;
             $document->kk_filename = $document->kk ? basename($document->kk) : null;
@@ -52,6 +62,38 @@ class DocumentController extends Controller
 
         return response()->file($path);
     }
+
+    // New method for user to view their own documents
+    public function showUserFile($filename, $category)
+    {
+        $allowedCategories = ['ktp', 'kk', 'ijazah', 'ak1'];
+
+        if (!in_array($category, $allowedCategories)) {
+            abort(403, 'Kategori tidak valid!');
+        }
+
+        // Get user's document
+        $document = Document::where('user_id', Auth::id())->first();
+        
+        if (!$document) {
+            abort(404, 'Dokumen tidak ditemukan!');
+        }
+
+        // Check if the file belongs to the authenticated user
+        $userFile = $document->{$category};
+        if (!$userFile || basename($userFile) !== $filename) {
+            abort(403, 'Akses ditolak!');
+        }
+
+        $path = storage_path("app/private/documents/{$category}/{$filename}");
+
+        if (!file_exists($path)) {
+            abort(404, 'File tidak ditemukan!');
+        }
+
+        return response()->file($path);
+    }
+
     public function updateStatusAjax(Request $request, Document $document)
     {
         // Validasi input
@@ -65,6 +107,7 @@ class DocumentController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Status berhasil diperbarui']);
     }
+
     public function message($id, Request $request)
     {
         $request->validate([

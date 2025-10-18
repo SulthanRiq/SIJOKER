@@ -35,7 +35,7 @@
                         @endphp
                     
                         @foreach($documents as $key => $label)
-                            <div class="mb-3 row">
+                            <div class="mb-4 row">
                                 <label for="{{ $key }}" class="form-label col-md-8">{{ $label }} (Wajib)
                                     @php $status = $document->{$key . '_status'} ?? 'none'; @endphp
                                     <span class="badge bg-{{ $status == 'confirmed' ? 'success' : ($status == 'rejected' ? 'danger' : ($status == 'pending' ? 'warning' : 'secondary')) }}">
@@ -43,11 +43,21 @@
                                     </span>
                                 </label>
                                 <div class="col-md-12">
-                                    <input type="file" class="form-control" id="{{ $key }}" name="{{ $key }}"`  
-                                        @if(in_array($status, ['confirmed', 'pending'])) disabled @endif onchange="checkFileSize(this)">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="file" class="form-control" id="{{ $key }}" name="{{ $key }}"  
+                                            @if(in_array($status, ['confirmed', 'pending'])) disabled @endif onchange="checkFileSize(this)">
+                                        
+                                        @if(!empty($document->{$key}))
+                                            <a href="{{ route('documents.show.user', [basename($document->{$key}), $key]) }}" 
+                                               target="_blank" 
+                                               class="btn btn-outline-primary btn-sm flex-shrink-0">
+                                                <i class="fas fa-eye"></i> Lihat
+                                            </a>
+                                        @endif
+                                    </div>
                                     <small class="text-muted">Ukuran maksimum 1MB (format: pdf)</small>
                                     @if(!empty($document->{$key}))
-                                        <p class="text-muted">Dokumen saat ini: {{ basename($document->{$key}) }}</p>
+                                        <p class="text-muted mb-0">Dokumen saat ini: {{ basename($document->{$key}) }}</p>
                                     @endif
                                 </div>
                             </div>

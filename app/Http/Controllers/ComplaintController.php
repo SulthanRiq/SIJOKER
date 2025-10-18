@@ -29,7 +29,7 @@ class ComplaintController extends Controller
         $complaints = Complaint::query();
 
         if ($status === 'not answered') {
-            $complaints->where('status', 'pending');
+            $complaints->where('status', 'not answered');
         } elseif ($status === 'answered') {
             $complaints->where('status', 'answered');
         }

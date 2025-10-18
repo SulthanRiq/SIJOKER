@@ -391,5 +391,77 @@ class ParticipantController extends Controller
         return view('admin.participant-confirm-delete', compact('participant'));
     }
 
+    public function exportXlsx(Request $request)
+{
+    $query = User::with('profile')->whereHas('roles', function ($q) {
+        $q->where('name', 'user');
+    });
+
+    if ($request->filled('universal_search')) {
+        $search = $request->universal_search;
+        $query->where(function ($q) use ($search) {
+            $q->where('email', 'like', '%' . $search . '%')
+              ->orWhereHas('profile', function ($q) use ($search) {
+                  $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('nik', 'like', '%' . $search . '%')
+                    ->orWhere('ttl', 'like', '%' . $search . '%')
+                    ->orWhere('gender', 'like', '%' . $search . '%')
+                    ->orWhere('jalan', 'like', '%' . $search . '%')
+                    ->orWhere('desa', 'like', '%' . $search . '%')
+                    ->orWhere('kecamatan', 'like', '%' . $search . '%')
+                    ->orWhere('pendidikan', 'like', '%' . $search . '%')
+                    ->orWhere('nomor', 'like', '%' . $search . '%');
+              });
+        });
+    }
+
+    $participants = $query->get();
+
+    $fileName = 'participants_' . date('Y-m-d_H-i-s') . '.xlsx';
+    
+    // Using PhpSpreadsheet for XLSX export
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    
+    // Set headers
+    $headers = ['Name', 'Email', 'NIK', 'TTL', 'Gender', 'Desa', 'Pendidikan', 'No. Telepon'];
+    $sheet->fromArray($headers, null, 'A1');
+    
+    // Add data
+    $row = 2;
+    foreach ($participants as $participant) {
+        $data = [
+            $participant->profile->name ?? 'N/A',
+            $participant->email,
+            $participant->profile->nik ?? 'N/A',
+            $participant->profile->ttl ?? 'N/A',
+            $participant->profile->gender ?? 'N/A',
+            $participant->profile->desa ?? 'N/A',
+            $participant->profile->pendidikan ?? 'N/A',
+            $participant->profile->nomor ?? 'N/A',
+        ];
+        $sheet->fromArray($data, null, 'A' . $row);
+        $row++;
+    }
+    
+    // Style headers
+    $sheet->getStyle('A1:H1')->getFont()->setBold(true);
+    $sheet->getStyle('A1:H1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+          ->getStartColor()->setARGB('FFD9E1F2');
+    
+    // Auto-size columns
+    foreach (range('A', 'H') as $column) {
+        $sheet->getColumnDimension($column)->setAutoSize(true);
+    }
+
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    
+    return response()->streamDownload(function() use ($writer) {
+        $writer->save('php://output');
+    }, $fileName, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ]);
+}
+
 
 }

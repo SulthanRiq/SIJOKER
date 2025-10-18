@@ -234,14 +234,14 @@
                 </div>
                 <div class="d-flex mb-3">
                     <i class="fas fa-phone-alt text-primary mr-3 mt-1"></i>
-                    <p class="text-muted">+62 822 2222 2222</p>
+                    <p class="text-muted">+62 851 7685 1727</p>
                 </div>
                 <div class="d-flex">
                     <i class="fas fa-envelope text-primary mr-3 mt-1"></i>
-                    <p class="text-muted">info@disnakerkotabatu.go.id</p>
+                    <p class="text-muted">disnakerkotabatu@gmail.com</p>
                 </div>
             </div>
-            <div class="col-lg-6">
+            {{-- <div class="col-lg-6">
                 <form class="shadow-lg p-4 rounded">
                     <div class="form-group">
                         <input type="text" class="form-control rounded-pill" placeholder="Nama Lengkap" required>
@@ -254,7 +254,7 @@
                     </div>
                     <button type="submit" class="btn btn-primary rounded-pill px-4">Kirim Pesan</button>
                 </form>
-            </div>
+            </div> --}}
         </div>
     </div>
     <!-- Contact End -->

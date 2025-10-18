@@ -9,6 +9,8 @@ use App\Models\DeletionReason; // Import DeletionReason model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Pelaporan;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon; // Import Carbon untuk tanggal
 
 class AdminController extends Controller
 {
@@ -25,6 +27,18 @@ class AdminController extends Controller
 
         // Menghitung jumlah pelatihan yang tersedia
         $trainingCount = Training::count();
+
+        // TAMBAHAN: Hitung kunjungan hari ini dan kemarin
+        $visitorsToday = DB::table('visits')->whereDate('created_at', today())->count();
+        $visitorsYesterday = DB::table('visits')->whereDate('created_at', Carbon::yesterday())->count();
+
+        // Hitung persentase perubahan kunjungan
+        $visitChangePercent = 0;
+        if ($visitorsYesterday > 0) {
+            $visitChangePercent = (($visitorsToday - $visitorsYesterday) / $visitorsYesterday) * 100;
+        } elseif ($visitorsToday > 0) {
+            $visitChangePercent = 100;
+        }
 
         // Menghitung desa dengan jumlah peserta tertinggi
         $desaTertinggi = Profile::select('desa')
@@ -60,14 +74,17 @@ class AdminController extends Controller
             ->groupBy('trainings.title')
             ->get();
 
-        // Kirim data ke view dashboard
+        // Kirim data ke view dashboard dengan variabel kunjungan
         return view('admin.dashboard', compact(
-            'users', 
-            'pencakerCount', 
-            'trainingCount', 
-            'desaTertinggi', 
-            'desaData', 
-            'kecamatanData', 
+            'users',
+            'pencakerCount',
+            'trainingCount',
+            'visitorsToday',
+            'visitorsYesterday',
+            'visitChangePercent',
+            'desaTertinggi',
+            'desaData',
+            'kecamatanData',
             'trainingParticipants'
         ));
     }
@@ -92,7 +109,7 @@ class AdminController extends Controller
         if ($search) {
             $users->where(function ($query) use ($search) {
                 $query->where('name', 'LIKE', "%$search%")
-                      ->orWhere('email', 'LIKE', "%$search%");
+                    ->orWhere('email', 'LIKE', "%$search%");
             });
         }
 
@@ -202,11 +219,53 @@ class AdminController extends Controller
     {
         // Mengambil semua data dari tabel pelaporans
         $pelaporans = Pelaporan::all();
-        
+
         // Mengirim data ke view
         return view('admin.pelaporan-admin', compact('pelaporans'));
     }
+
+    public function profile()
+    {
+        $admin = auth()->user();
+        return view('admin.profile', compact('admin'));
+    }
+
+    /**
+     * Update profil admin
+     */
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
+            'current_password' => 'nullable|required_with:new_password',
+            'new_password' => 'nullable|min:8|confirmed',
+        ], [
+            'name.required' => 'Nama wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.unique' => 'Email sudah digunakan.',
+            'current_password.required_with' => 'Password saat ini wajib diisi jika ingin mengubah password.',
+            'new_password.min' => 'Password baru minimal 8 karakter.',
+            'new_password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        $admin = auth()->user();
+
+        // Update nama dan email
+        $admin->name = $request->name;
+        $admin->email = $request->email;
+
+        // Update password jika diisi
+        if ($request->filled('current_password')) {
+            if (!Hash::check($request->current_password, $admin->password)) {
+                return back()->withErrors(['current_password' => 'Password saat ini tidak benar.']);
+            }
+            
+            $admin->password = Hash::make($request->new_password);
+        }
+
+        $admin->save();
+
+        return redirect()->route('admin.profile')->with('success', 'Profil berhasil diperbarui.');
+    }
 }
-
-
-

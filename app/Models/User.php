@@ -50,8 +50,8 @@ class User extends Authenticatable
     {
         // Jika profile_image ada, maka return URL ke gambar di storage
         // Jika tidak ada, return URL gambar default
-        return $this->profile_image 
-            ? 'profile_pictures/' . $this->profile_image 
+        return $this->profile_image
+            ? 'profile_pictures/' . $this->profile_image
             : 'default-profile.jpg';  // Path untuk gambar default
     }
 
@@ -77,4 +77,16 @@ class User extends Authenticatable
     {
         return $this->likes()->where('complaint_id', $complaint->id)->exists();
     }
+
+    // Di app/Models/User.php
+    public function visits()
+    {
+        return $this->hasMany(Visit::class);
+    }
+
+    public function surveys()
+    {
+        return $this->hasMany(Survey::class);
+    }
+
 }

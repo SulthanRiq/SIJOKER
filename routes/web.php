@@ -1,11 +1,23 @@
 <?php
+
 namespace App\Http\Controllers;
+
+use App\Http\Controllers\PelaporanController;
+use App\Http\Controllers\SurveyController;
+use App\Http\Controllers\LokerController;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
-    AuthController, ProfileController, AdminController, 
-    ParticipantController, TrainingController, CourseController, HomeController , 
-    PelaporanController
+    AuthController,
+    ProfileController,
+    AdminController,
+    ParticipantController,
+    TrainingController,
+    CourseController,
+    HomeController
 };
+use App\Models\Visit;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::view('/about', 'about')->name('about');
@@ -30,10 +42,9 @@ Route::middleware('auth')->prefix('profile')->name('profile.')->controller(Profi
     Route::post('/storeOrUpdate', 'storeOrUpdateProfile')->name('storeOrUpdate');
     Route::post('/documents/storeOrUpdate', 'storeOrUpdateDocuments')->name('documents.storeOrUpdate');
     Route::get('/{user}', 'show')->name('show');
-
 });
 
-Route::post('/admin/account-participants', [AuthController::class,'store'])->middleware(['auth', 'role:super_admin'])->name('admin.account.store');
+Route::post('/admin/account-participants', [AuthController::class, 'store'])->middleware(['auth', 'role:super_admin'])->name('admin.account.store');
 Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/remove-participant/{userId}', [AdminController::class, 'showRemovalForm'])->name('removeParticipantForm');
@@ -46,30 +57,51 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
     Route::get('/withdrawals', [AdminController::class, 'withdrawalRequests'])->name('withdrawals');
     Route::post('/withdrawals/{id}/verify', [AdminController::class, 'verifyWithdrawal'])->name('withdrawals.verify');
     Route::post('/withdrawals/{id}/reject', [AdminController::class, 'rejectWithdrawal'])->name('withdrawals.reject');
-    
+
     Route::get('/admin/complaints', [ComplaintController::class, 'admin'])->name('complaints');
     Route::get('/complaints/{id}/show', [ComplaintController::class, 'show'])->name('complaints.show');
-    Route::post('/complaints/{id}/answer', [ComplaintController::class,'answer'])->name('complaints.answer');
+    Route::post('/complaints/{id}/answer', [ComplaintController::class, 'answer'])->name('complaints.answer');
     Route::delete('/complaints/{id}/destroy', [ComplaintController::class, 'destroy'])->name('complaints.destroy');
-    
+
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
     Route::get('/documents/{filename}/{category}', [DocumentController::class, 'showFile'])->name('documents.show');
     Route::patch('/documents/{document}/update-status', [DocumentController::class, 'updateStatusAjax'])->name('documents.updateStatus');
     Route::patch('/documents/{id}/message', [DocumentController::class, 'message'])->name('documents.message');
+
+    // Training management routes
+    Route::get('/trainings', [TrainingController::class, 'index'])->name('trainings.index');
+    Route::get('/trainings/create', [TrainingController::class, 'create'])->name('trainings.create');
+    Route::post('/trainings', [TrainingController::class, 'store'])->name('trainings.store');
+    Route::get('/trainings/{id}/edit', [TrainingController::class, 'edit'])->name('trainings.edit');
+    Route::put('/trainings/{id}', [TrainingController::class, 'update'])->name('trainings.update');
+    Route::delete('/trainings/{id}', [TrainingController::class, 'destroy'])->name('trainings.destroy');
+    Route::get('/trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
+    Route::get('/trainings/{id}/export', [TrainingController::class, 'exportParticipants'])->name('trainings.export');
     
-    Route::get('/trainings', [TrainingController::class, 'index'])->name('training_management');
+    // Routes untuk mengelola gambar individual
+    Route::delete('/trainings/images/{image}/delete', [TrainingController::class, 'deleteImage'])->name('trainings.images.delete');
+    Route::post('/trainings/images/{image}/set-primary', [TrainingController::class, 'setPrimaryImage'])->name('trainings.images.set-primary');
+    
 });
 
-Route::middleware(['auth', 'role:user'])->get('/user/dashboard', fn () => view('user.dashboard'))->name('user.dashboard');
+Route::middleware(['auth', 'role:user'])->get('/user/dashboard', fn() => view('user.dashboard'))->name('user.dashboard');
 
 Route::resource('trainings', TrainingController::class);
 Route::middleware('auth')->group(function () {
     Route::get('/trainings/{id}/register', [TrainingController::class, 'register'])->name('trainings.register');
     Route::post('/trainings/{id}/process', [TrainingController::class, 'processRegistration'])->name('trainings.process');
-    Route::get('/trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
+    
     Route::post('/profile/training/withdraw/{trainingId}', [ProfileController::class, 'withdraw'])->name('training.withdraw');
     Route::get('/training-participants', [TrainingController::class, 'showTrainingParticipants'])->name('training.participants');
-    
+});
+
+// Routes untuk USER - melihat dan mendaftar pelatihan
+Route::middleware('auth')->group(function () {
+    Route::get('/trainings', [TrainingController::class, 'userIndex'])->name('trainings.user.index'); // halaman training untuk user
+    Route::get('/trainings/{id}', [TrainingController::class, 'show'])->name('trainings.show'); // detail training
+    Route::get('/trainings/{id}/register', [TrainingController::class, 'register'])->name('trainings.register');
+    Route::post('/trainings/{id}/process', [TrainingController::class, 'processRegistration'])->name('trainings.process');
+    Route::post('/profile/training/withdraw/{trainingId}', [ProfileController::class, 'withdraw'])->name('training.withdraw');
 });
 
 Route::controller(CourseController::class)->group(function () {
@@ -89,19 +121,20 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin/participant
     Route::post('/document/{id}/{type}/revision', 'markAsRevision')->name('document.revision');
     Route::post('/{id}/send-revision', 'sendRevision')->name('sendRevision');
     Route::get('/export', 'export')->name('export');
-    Route::post('/document/reject/{id}/{type}','rejectDocument')->name('document.reject');
-    Route::get('/{user_id}/confirm-delete','confirmDelete')->name('confirmDelete');
-    Route::post('/participants/{user_id}/delete','deleteParticipant')->name('delete');
-    Route::get('/participant/{id}','show')->name('participant.show');
-    Route::delete('/participant/{id}/delete','destroy')->name('participant.destroy');
-    Route::get('/view-document/{userId}/{category}','viewDocument')->name('view.document');
+    Route::post('/document/reject/{id}/{type}', 'rejectDocument')->name('document.reject');
+    Route::get('/{user_id}/confirm-delete', 'confirmDelete')->name('confirmDelete');
+    Route::post('/participants/{user_id}/delete', 'deleteParticipant')->name('delete');
+    Route::get('/participant/{id}', 'show')->name('participant.show');
+    Route::delete('/participant/{id}/delete', 'destroy')->name('participant.destroy');
+    Route::get('/view-document/{userId}/{category}', 'viewDocument')->name('view.document');
+    Route::get('/participants/export-xlsx', 'exportXlsx')->name('export.xlsx');
 });
 
-Route::middleware('auth')->prefix('pelatihan')->name('pelatihan.')->controller(TrainingController::class)->group(function () {
-    Route::get('/{id}/preview',  'preview')->name('preview');
-    Route::post('/{id}/daftar',  'register')->name('register');
-    Route::get('/check-completion', 'checkProfileCompletion')->name('checkCompletion');
-});
+// Route::middleware('auth')->prefix('pelatihan')->name('pelatihan.')->controller(TrainingController::class)->group(function () {
+//     Route::get('/{id}/preview',  'preview')->name('preview');
+//     Route::post('/{id}/daftar',  'register')->name('register');
+//     Route::get('/check-completion', 'checkProfileCompletion')->name('checkCompletion');
+// });
 
 Route::get('/complaints', [ComplaintController::class, 'index'])->name('complaints.index');
 Route::get('/complaints/{id}', [ComplaintController::class, 'show'])->name('complaints.show');
@@ -114,6 +147,202 @@ Route::get('/pelaporan', [PelaporanController::class, 'index'])->name('pelaporan
 Route::get('/pelaporan/Create', [PelaporanController::class, 'create'])->name('pelaporan.create');
 Route::post('/pelaporan', [PelaporanController::class, 'store'])->name('pelaporan.store');
 Route::get('/export-excel', [PelaporanController::class, 'exportExcel']);
+
+Route::get('/instagram-url', function () {
+    return 'https://www.instagram.com/disnaker_kotabatu?igsh=MXVoOGFuNW4zZjMzcw%3D%3D&utm_source=qr';
+})->name('instagram-url');
+
+// Route untuk admin visit stats
+Route::get('/admin/visit-stats', function () {
+    $todayVisits = Visit::whereDate('visit_date', today())->count();
+    $totalVisits = Visit::count();
+    $guestVisits = Visit::whereNull('user_id')->whereDate('visit_date', today())->count();
+    $userVisits = Visit::whereNotNull('user_id')->whereDate('visit_date', today())->count();
+
+    $recentVisits = Visit::with('user')
+        ->latest()
+        ->limit(10)
+        ->get();
+
+    return view('admin.visit-stats', compact('todayVisits', 'totalVisits', 'guestVisits', 'userVisits', 'recentVisits'));
+})->middleware(['auth', 'role:super_admin|admin'])->name('admin.visit_stats'); // Tambah middleware auth untuk admin
+
+Route::get('/admin/visit-stats', [VisitController::class, 'index'])->name('admin.visits.index');
+
+// Route untuk tampilan public/user (tanpa middleware auth)
+Route::get('/berita', [NewsController::class, 'publicIndex'])->name('news.public.index');
+Route::get('/berita/{id}', [NewsController::class, 'publicShow'])->name('news.public.show');
+
+// Route test untuk guest
+Route::get('/test-guest', function () {
+    return '<h1>Test Page - Guest Visit</h1><p>IP: ' . request()->ip() . '</p><a href="/visit-stats">Lihat Stats</a>';
+});
+
+// Route test untuk user login
+Route::get('/test-user', function () {
+    if (Auth::check()) {
+        return '<h1>Test Page - Logged User</h1><p>User: ' . Auth::user()->name . '</p><p>IP: ' . request()->ip() . '</p><a href="/visit-stats">Lihat Stats</a>';
+    }
+    return redirect('/login');
+})->middleware('auth');
+
+Route::get('/debug-tracking', function () {
+    $request = request();
+    $ip = $request->ip();
+    $userAgent = $request->userAgent();
+    $sessionId = session()->getId();
+    $userId = auth()->id() ?? 'Guest';
+
+    // Cek kondisi tracking
+    $shouldTrack = $request->isMethod('GET') &&
+        !$request->expectsJson() &&
+        !$request->is('api/*') &&
+        !str_starts_with($request->path(), '_') &&
+        $request->path() !== 'favicon.ico';
+
+    // Check existing visits
+    $guestExists = \App\Models\Visit::whereNull('user_id')
+        ->where('ip_address', $ip)
+        ->where('visit_date', today())
+        ->exists();
+
+    $userExists = auth()->check() ? \App\Models\Visit::where('user_id', auth()->id())
+        ->where('session_token', $sessionId)
+        ->where('visit_date', today())
+        ->exists() : false;
+
+    return response()->json([
+        'tracking_conditions' => [
+            'is_get' => $request->isMethod('GET'),
+            'not_expects_json' => !$request->expectsJson(),
+            'not_api' => !$request->is('api/*'),
+            'not_underscore' => !str_starts_with($request->path(), '_'),
+            'not_favicon' => $request->path() !== 'favicon.ico',
+            'should_track' => $shouldTrack
+        ],
+        'request_info' => [
+            'method' => $request->method(),
+            'path' => $request->path(),
+            'ip' => $ip,
+            'user_agent' => $userAgent,
+            'session_id' => $sessionId,
+            'user_id' => $userId,
+            'is_auth' => auth()->check()
+        ],
+        'database_check' => [
+            'guest_visit_exists_today' => $guestExists,
+            'user_visit_exists_today' => $userExists,
+            'total_visits_today' => \App\Models\Visit::whereDate('visit_date', today())->count(),
+            'user_visits_today' => \App\Models\Visit::whereNotNull('user_id')->whereDate('visit_date', today())->count(),
+            'guest_visits_today' => \App\Models\Visit::whereNull('user_id')->whereDate('visit_date', today())->count()
+        ]
+    ]);
+});
+
+Route::get('/admin/visits', [VisitController::class, 'index'])->name('admin.visits.index');
+
+// Routes untuk Pelaporan
+Route::prefix('pelaporan')->name('pelaporan.')->group(function () {
+    Route::get('/', [PelaporanController::class, 'index'])->name('index');
+    Route::get('/create', [PelaporanController::class, 'create'])->name('create');
+    Route::post('/', [PelaporanController::class, 'store'])->name('store');
+    Route::get('/{id}', [PelaporanController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [PelaporanController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [PelaporanController::class, 'update'])->name('update');
+    Route::delete('/{id}', [PelaporanController::class, 'destroy'])->name('destroy');
+
+    // Export routes
+    Route::get('export/excel', [PelaporanController::class, 'exportExcel'])->name('export.excel');
+    Route::post('export/excel-filtered', [PelaporanController::class, 'exportExcelFiltered'])->name('export.excel.filtered');
+});
+
+// Tambahkan di routes/web.php
+
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+    Route::resource('news', NewsController::class);
+});
+
+Route::resource('news', NewsController::class);
+
+Route::middleware('auth')->group(function () {
+    Route::post('/survey', [SurveyController::class, 'store'])->name('survey.store');
+    Route::get('/survey', [SurveyController::class, 'index'])->name('survey.index');
+});
+
+Route::get('/survey/form', fn() => view('survey.form'))->middleware('auth');
+Route::get('/admin/survey', [SurveyController::class, 'adminView'])->name('admin.survey.index')->middleware('auth');
+Route::get('/admin/news', [NewsController::class, 'index'])->name('admin.news.index');
+
+Route::get('/survey/thankyou', function () {
+    return view('survey.thankyou');
+})->name('survey.thankyou');
+
+Route::get('/survey/error', function () {
+    return view('survey.error');
+})->name('survey.error');
+
+Route::get('/lokers', [LokerController::class, 'publicIndex'])->name('lokers.index');
+Route::get('/lokers/{loker}', [LokerController::class, 'show'])->name('lokers.show');
+
+// Routes untuk Admin (gunakan middleware auth dan role admin sesuai sistem Anda)
+Route::get('/lokers', [LokerController::class, 'publicIndex'])->name('lokers.index');
+Route::get('/lokers/{loker}', [LokerController::class, 'show'])->name('lokers.show');
+
+// Routes untuk Admin
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::resource('lokers', LokerController::class);
+});
+
+Route::get('/admin/visit-stats', [VisitController::class, 'index'])->middleware(['auth', 'role:super_admin|admin'])->name('admin.visit_stats');
+
+
+Route::get('/trainings', [TrainingController::class, 'userIndex'])->name('trainings.user.index');
+Route::get('/trainings/{id}', [TrainingController::class, 'show'])->name('trainings.show');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/pelatihan/{id}/preview', [TrainingController::class, 'preview'])->name('pelatihan.preview');
+    Route::post('/pelatihan/{id}/daftar', [TrainingController::class, 'register'])->name('pelatihan.register');
+    Route::post('/profile/training/withdraw/{trainingId}', [ProfileController::class, 'withdraw'])->name('training.withdraw');
+});
+
+Route::get('/documents/view/{filename}/{category}', [DocumentController::class, 'showUserFile'])
+    ->name('documents.show.user')
+    ->middleware('auth');
+
+Route::get('/app/Exports/LokerExport', [LokerController::class, 'export'])->name('admin.lokers.export');
+
+Route::middleware(['auth', 'role:super_admin|admin'])->group(function() {
+    Route::get('/admin/profile', [ProfileController::class, 'index'])->name('admin.profile');
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/profile', [AdminController::class, 'profile'])->name('admin.profile');
+    Route::put('/admin/profile', [AdminController::class, 'updateProfile'])->name('admin.updateProfile');
+});
+
+// Replace it with:
+Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
+Route::get('/admin/trainings/{id}/participants/export', [TrainingController::class, 'exportParticipants'])->name('admin.participant.export');
+});
+
+Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
+Route::get('/trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
+});
+
+// Routes untuk Pengaduan (User)
+Route::middleware('auth')->prefix('pengaduan')->name('pengaduan.')->controller(PengaduanController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/create', 'create')->name('create');
+    Route::post('/', 'store')->name('store');
+    Route::get('/{id}', 'show')->name('show');
+});
+
+// Routes untuk Admin Pengaduan
+Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin/pengaduan')->name('admin.pengaduan.')->controller(PengaduanController::class)->group(function () {
+    Route::get('/', 'adminIndex')->name('index');
+    Route::get('/{id}', 'adminShow')->name('show');
+    Route::post('/{id}/reply', 'adminReply')->name('reply');
+});
 // Route::get('/contact', function() {
 //     return view('contact');
 // })->name('contact');

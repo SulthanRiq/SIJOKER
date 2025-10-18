@@ -9,37 +9,53 @@ class Training extends Model
 {
     use HasFactory;
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
     protected $table = 'trainings';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'title',
         'description',
         'start_date',
+        'start_time',
         'end_date',
+        'end_time',
         'capacity',
         'location',
-        'image', // Jika ada gambar, tambahkan ke mass assignable
+        'image', // Keep for backward compatibility
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
     ];
+
+    /**
+     * Relasi hasMany ke TrainingImage
+     */
+    public function images()
+    {
+        return $this->hasMany(TrainingImage::class)->ordered();
+    }
+
+    /**
+     * Get gambar utama
+     */
+    public function primaryImage()
+    {
+        return $this->hasOne(TrainingImage::class)->where('is_primary', true);
+    }
+
+    /**
+     * Get gambar utama atau fallback ke image lama
+     */
+    public function getPrimaryImageAttribute()
+    {
+        $primaryImage = $this->primaryImage()->first();
+        if ($primaryImage) {
+            return $primaryImage->image_path;
+        }
+        // Fallback ke kolom image lama jika ada
+        return $this->attributes['image'] ?? null;
+    }
 
     /**
      * Relasi hasManyThrough untuk mendapatkan peserta pelatihan (User) melalui Registration.
