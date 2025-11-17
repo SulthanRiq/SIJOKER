@@ -28,60 +28,46 @@
     }
 
     .content {
-    position: relative;
-    z-index: 1;
-}
+        position: relative;
+        z-index: 1;
+    }
 
-.form-container {
-    position: relative;
-    z-index: 2;
-}
+    .form-container {
+        position: relative;
+        z-index: 2;
+    }
 
-/* Pastikan konten tidak tersembunyi oleh navbar */
-.content {
-    padding-top: 0;
-    margin-top: 0;
-}
+    .content {
+        padding-top: 0;
+        margin-top: 0;
+    }
 
-/* Override any conflicting display properties */
-.page-transition {
-    display: block !important;
-    visibility: visible !important;
-}
+    .page-transition {
+        display: block !important;
+        visibility: visible !important;
+    }
 
-.form-container,
-.page-header {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+    .form-container,
+    .page-header {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 
-/* Fix for potential overflow issues */
-body {
-    overflow-x: auto;
-    overflow-y: auto;
-}
+    body {
+        overflow-x: auto;
+        overflow-y: auto;
+    }
 
-.container {
-    overflow: visible;
-}
+    .container {
+        overflow: visible;
+    }
 
-/* Ensure form sections are visible */
-.form-section {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-/* Debug helper - tambahkan class ini sementara untuk debugging */
-.debug-visible {
-    border: 2px solid red !important;
-    background: rgba(255, 0, 0, 0.1) !important;
-    min-height: 50px !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+    .form-section {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 
     /* Header Styles */
     .page-header {
@@ -269,6 +255,50 @@ body {
     .form-control::placeholder {
         color: var(--light-steel);
         opacity: 0.7;
+    }
+
+    /* Error Styles */
+    .form-control.is-invalid {
+        border-color: var(--error-red);
+        background: linear-gradient(145deg, #fff5f5 0%, #fed7d7 10%);
+    }
+
+    .form-control.is-valid {
+        border-color: var(--success-green);
+        background: linear-gradient(145deg, #f0fff4 0%, #c6f6d5 10%);
+    }
+
+    .error-message {
+        display: none;
+        color: var(--error-red);
+        font-size: 0.85rem;
+        margin-top: 5px;
+        padding: 8px 12px;
+        background: linear-gradient(135deg, rgba(229, 62, 62, 0.1), rgba(197, 48, 48, 0.05));
+        border-radius: 8px;
+        border-left: 3px solid var(--error-red);
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .error-message.show {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .error-message i {
+        font-size: 1rem;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     /* Radio and Checkbox Styles */
@@ -549,6 +579,13 @@ body {
     .form-section:nth-child(2) { animation-delay: 0.1s; }
     .form-section:nth-child(3) { animation-delay: 0.2s; }
     .form-section:nth-child(4) { animation-delay: 0.3s; }
+
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
 </style>
 
 <!-- Page Header -->
@@ -591,8 +628,12 @@ body {
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="NamaPengelola">Nama Pengelola</label>
+                            <label for="NamaPengelola">Nama Pengelola <span style="color: var(--error-red);">*</span></label>
                             <input type="text" class="form-control" id="NamaPengelola" name="NamaPengelola" required>
+                            <div class="error-message" id="error-NamaPengelola">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Nama pengelola tidak boleh kosong</span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -611,14 +652,22 @@ body {
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="noTelp">No Telp/Fax</label>
+                            <label for="noTelp">No Telp/Fax <span style="color: var(--error-red);">*</span></label>
                             <input type="text" class="form-control" id="noTelp" name="noTelp" required>
+                            <div class="error-message" id="error-noTelp">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Nomor telepon harus berupa angka dan tidak boleh kosong</span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="kodePos">Kode Pos</label>
-                            <input type="text" class="form-control" id="kodePos" name="kodePos" required>
+                            <label for="kodePos">Kode Pos <span style="color: var(--error-red);">*</span></label>
+                            <input type="text" class="form-control" id="kodePos" name="kodePos" required maxlength="5">
+                            <div class="error-message" id="error-kodePos">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Kode pos harus 5 digit angka</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -626,8 +675,12 @@ body {
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="jenisUsaha">Jenis Usaha</label>
+                            <label for="jenisUsaha">Jenis Usaha <span style="color: var(--error-red);">*</span></label>
                             <input type="text" class="form-control" id="jenisUsaha" name="jenisUsaha" required>
+                            <div class="error-message" id="error-jenisUsaha">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Jenis usaha tidak boleh kosong</span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -651,8 +704,12 @@ body {
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="PendirianPerusahaan">Pendirian Perusahaan</label>
+                            <label for="PendirianPerusahaan">Pendirian Perusahaan <span style="color: var(--error-red);">*</span></label>
                             <input type="date" class="form-control" id="PendirianPerusahaan" name="PendirianPerusahaan" required>
+                            <div class="error-message" id="error-PendirianPerusahaan">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span id="error-PendirianPerusahaan-text">Tanggal pendirian tidak boleh kosong</span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -664,7 +721,7 @@ body {
                 </div>
 
                 <div class="form-group">
-                    <label>Status Perusahaan</label>
+                    <label>Status Perusahaan <span style="color: var(--error-red);">*</span></label>
                     <div class="radio-group">
                         <label class="radio-item">
                             <input type="radio" name="statusPerusahaan" value="Pusat" required>
@@ -674,6 +731,10 @@ body {
                             <input type="radio" name="statusPerusahaan" value="Cabang">
                             <span>Cabang</span>
                         </label>
+                    </div>
+                    <div class="error-message" id="error-statusPerusahaan">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Status perusahaan harus dipilih</span>
                     </div>
                 </div>
 
@@ -776,15 +837,23 @@ body {
 
                 <!-- Jumlah Tenaga Kerja -->
                 <div class="form-group">
-                    <label><i class="fas fa-user-friends mr-2" style="color: var(--warning-orange);"></i>Jumlah Tenaga Kerja</label>
+                    <label><i class="fas fa-user-friends mr-2" style="color: var(--warning-orange);"></i>Jumlah Tenaga Kerja <span style="color: var(--error-red);">*</span></label>
                     <div class="gender-inputs">
                         <div class="form-group">
                             <label for="JumlahTenagaKerjaLaki">Laki-laki</label>
                             <input type="number" class="form-control" id="JumlahTenagaKerjaLaki" name="JumlahTenagaKerjaLaki" min="0" required>
+                            <div class="error-message" id="error-JumlahTenagaKerjaLaki">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Harus berupa angka positif</span>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="JumlahTenagaKerjaPerempuan">Perempuan</label>
                             <input type="number" class="form-control" id="JumlahTenagaKerjaPerempuan" name="JumlahTenagaKerjaPerempuan" min="0" required>
+                            <div class="error-message" id="error-JumlahTenagaKerjaPerempuan">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Harus berupa angka positif</span>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="JumlahTenagaKerja">Total</label>
@@ -1394,6 +1463,271 @@ body {
 </div>
 
 <script>
+    // =============================
+// 1. validateNamaPengelola
+// =============================
+function validateNamaPengelola() {
+    const input = document.getElementById('NamaPengelola');          // S1
+    const error = document.getElementById('error-NamaPengelola');    // S2
+    const value = input.value.trim();                                // S3
+
+    if (value === '') {                                              // S4
+        input.classList.add('is-invalid');                           // S5
+        input.classList.remove('is-valid');                          // S6
+        error.classList.add('show');                                 // S7
+        return false;                                                // S8
+    } else {
+        input.classList.remove('is-invalid');                        // S9
+        input.classList.add('is-valid');                             // S10
+        error.classList.remove('show');                              // S11
+        return true;                                                 // S12
+    }
+}
+
+// =============================
+// 2. validateNoTelp
+//    (kondisi dipecah jadi 2 if)
+// =============================
+function validateNoTelp() {
+    const input = document.getElementById('noTelp');                 // S1
+    const error = document.getElementById('error-noTelp');           // S2
+    const value = input.value.trim();                                // S3
+    const numberPattern = /^[0-9]+$/;                                // S4
+
+    // Kondisi 1: nomor kosong
+    if (value === '') {                                              // S5
+        input.classList.add('is-invalid');                           // S6
+        input.classList.remove('is-valid');                          // S7
+        error.classList.add('show');                                 // S8
+        return false;                                                // S9
+    }
+
+    // Kondisi 2: format bukan angka semua
+    if (!numberPattern.test(value)) {                                // S10
+        input.classList.add('is-invalid');                           // S11
+        input.classList.remove('is-valid');                          // S12
+        error.classList.add('show');                                 // S13
+        return false;                                                // S14
+    }
+
+    // Jika lolos dua kondisi di atas → valid
+    input.classList.remove('is-invalid');                            // S15
+    input.classList.add('is-valid');                                 // S16
+    error.classList.remove('show');                                  // S17
+    return true;                                                     // S18
+}
+
+// =============================
+// 3. validateKodePos
+//    (kondisi dipecah jadi 2 if)
+// =============================
+function validateKodePos() {
+    const input = document.getElementById('kodePos');                // S1
+    const error = document.getElementById('error-kodePos');          // S2
+    const value = input.value.trim();                                // S3
+    const numberPattern = /^[0-9]{5}$/;                              // S4
+
+    // Kondisi 1: kode pos kosong
+    if (value === '') {                                              // S5
+        input.classList.add('is-invalid');                           // S6
+        input.classList.remove('is-valid');                          // S7
+        error.classList.add('show');                                 // S8
+        return false;                                                // S9
+    }
+
+    // Kondisi 2: bukan 5 digit angka
+    if (!numberPattern.test(value)) {                                // S10
+        input.classList.add('is-invalid');                           // S11
+        input.classList.remove('is-valid');                          // S12
+        error.classList.add('show');                                 // S13
+        return false;                                                // S14
+    }
+
+    // Jika lolos → valid
+    input.classList.remove('is-invalid');                            // S15
+    input.classList.add('is-valid');                                 // S16
+    error.classList.remove('show');                                  // S17
+    return true;                                                     // S18
+}
+
+// =============================
+// 4. validateJenisUsaha
+// =============================
+function validateJenisUsaha() {
+    const input = document.getElementById('jenisUsaha');             // S1
+    const error = document.getElementById('error-jenisUsaha');       // S2
+    const value = input.value.trim();                                // S3
+
+    if (value === '') {                                              // S4
+        input.classList.add('is-invalid');                           // S5
+        input.classList.remove('is-valid');                          // S6
+        error.classList.add('show');                                 // S7
+        return false;                                                // S8
+    } else {
+        input.classList.remove('is-invalid');                        // S9
+        input.classList.add('is-valid');                             // S10
+        error.classList.remove('show');                              // S11
+        return true;                                                 // S12
+    }
+}
+
+// =============================
+// 5. validateStatusPerusahaan
+// =============================
+function validateStatusPerusahaan() {
+    const error = document.getElementById('error-statusPerusahaan'); // S1
+    const checked = document.querySelector(                          // S2
+        'input[name="statusPerusahaan"]:checked'
+    );
+
+    if (!checked) {                                                  // S3
+        error.classList.add('show');                                 // S4
+        return false;                                                // S5
+    } else {
+        error.classList.remove('show');                              // S6
+        return true;                                                 // S7
+    }
+}
+
+// =============================
+// 6. validateTenagaKerja
+//    (kondisi dipecah jadi 3 if)
+// =============================
+function validateTenagaKerja(inputId, errorId) {
+    const input = document.getElementById(inputId);                  // S1
+    const error = document.getElementById(errorId);                  // S2
+    const value = input.value.trim();                                // S3
+
+    // Kondisi 1: kosong
+    if (value === '') {                                              // S4
+        input.classList.add('is-invalid');                           // S5
+        input.classList.remove('is-valid');                          // S6
+        error.classList.add('show');                                 // S7
+        return false;                                                // S8
+    }
+
+    const numericValue = parseFloat(value);                          // S9
+
+    // Kondisi 2: bukan angka (NaN)
+    if (isNaN(numericValue)) {                                       // S10
+        input.classList.add('is-invalid');                           // S11
+        input.classList.remove('is-valid');                          // S12
+        error.classList.add('show');                                 // S13
+        return false;                                                // S14
+    }
+
+    // Kondisi 3: angka negatif
+    if (numericValue < 0) {                                          // S15
+        input.classList.add('is-invalid');                           // S16
+        input.classList.remove('is-valid');                          // S17
+        error.classList.add('show');                                 // S18
+        return false;                                                // S19
+    }
+
+    // Jika tidak kosong, angka, dan ≥ 0 → valid
+    input.classList.remove('is-invalid');                            // S20
+    input.classList.add('is-valid');                                 // S21
+    error.classList.remove('show');                                  // S22
+    return true;                                                     // S23
+}
+
+    
+    (function() {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const year = yesterday.getFullYear();
+    const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+    const day = String(yesterday.getDate()).padStart(2, '0');
+    
+    const maxDate = `${year}-${month}-${day}`;
+    document.getElementById('PendirianPerusahaan').setAttribute('max', maxDate);
+})();
+
+// Validation untuk Pendirian Perusahaan
+function validatePendirianPerusahaan() {
+    const input = document.getElementById('PendirianPerusahaan');
+    const error = document.getElementById('error-PendirianPerusahaan');
+    const errorText = document.getElementById('error-PendirianPerusahaan-text');
+    const value = input.value;
+    
+    // Reset error state
+    input.classList.remove('is-invalid', 'is-valid');
+    error.classList.remove('show');
+    
+    // Check if empty
+    if (value === '') {
+        input.classList.add('is-invalid');
+        errorText.textContent = 'Tanggal pendirian perusahaan tidak boleh kosong';
+        error.classList.add('show');
+        return false;
+    }
+    
+    // Convert input date to Date object
+    const selectedDate = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    // Check if date is today or in the future
+    if (selectedDate >= today) {
+        input.classList.add('is-invalid');
+        errorText.textContent = 'Tanggal pendirian tidak boleh hari ini atau masa depan';
+        error.classList.add('show');
+        return false;
+    }
+    
+    // Check if date is too old (before 1900)
+    if (selectedDate.getFullYear() < 1900) {
+        input.classList.add('is-invalid');
+        errorText.textContent = 'Tanggal pendirian tidak valid (minimal tahun 1900)';
+        error.classList.add('show');
+        return false;
+    }
+    
+    // All validations passed
+    input.classList.add('is-valid');
+    return true;
+}
+
+// Event Listeners for Pendirian Perusahaan
+document.getElementById('PendirianPerusahaan').addEventListener('blur', validatePendirianPerusahaan);
+document.getElementById('PendirianPerusahaan').addEventListener('change', validatePendirianPerusahaan);
+
+
+
+    // Event Listeners for Real-time Validation
+    document.getElementById('NamaPengelola').addEventListener('blur', validateNamaPengelola);
+    document.getElementById('NamaPengelola').addEventListener('input', validateNamaPengelola);
+
+    document.getElementById('noTelp').addEventListener('blur', validateNoTelp);
+    document.getElementById('noTelp').addEventListener('input', validateNoTelp);
+
+    document.getElementById('kodePos').addEventListener('blur', validateKodePos);
+    document.getElementById('kodePos').addEventListener('input', validateKodePos);
+
+    document.getElementById('jenisUsaha').addEventListener('blur', validateJenisUsaha);
+    document.getElementById('jenisUsaha').addEventListener('input', validateJenisUsaha);
+
+    document.querySelectorAll('input[name="statusPerusahaan"]').forEach(radio => {
+        radio.addEventListener('change', validateStatusPerusahaan);
+    });
+
+    document.getElementById('JumlahTenagaKerjaLaki').addEventListener('blur', function() {
+        validateTenagaKerja('JumlahTenagaKerjaLaki', 'error-JumlahTenagaKerjaLaki');
+    });
+    document.getElementById('JumlahTenagaKerjaLaki').addEventListener('input', function() {
+        validateTenagaKerja('JumlahTenagaKerjaLaki', 'error-JumlahTenagaKerjaLaki');
+    });
+
+    document.getElementById('JumlahTenagaKerjaPerempuan').addEventListener('blur', function() {
+        validateTenagaKerja('JumlahTenagaKerjaPerempuan', 'error-JumlahTenagaKerjaPerempuan');
+    });
+    document.getElementById('JumlahTenagaKerjaPerempuan').addEventListener('input', function() {
+        validateTenagaKerja('JumlahTenagaKerjaPerempuan', 'error-JumlahTenagaKerjaPerempuan');
+    });
+
     // Auto calculate total tenaga kerja
     function calculateTotal() {
         const laki = parseInt(document.getElementById('JumlahTenagaKerjaLaki').value) || 0;
@@ -1549,9 +1883,32 @@ body {
         this.value = formatRupiah(this.value, 'Rp ');
     });
 
-    // Enhanced form submission
+    // Enhanced form submission with validation
     document.getElementById('laporanForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        // Validate all required fields
+        const validations = [
+            validateNamaPengelola(),
+            validateNoTelp(),
+            validateKodePos(),
+            validateJenisUsaha(),
+            validateStatusPerusahaan(),
+            validateTenagaKerja('JumlahTenagaKerjaLaki', 'error-JumlahTenagaKerjaLaki'),
+            validateTenagaKerja('JumlahTenagaKerjaPerempuan', 'error-JumlahTenagaKerjaPerempuan')
+        ];
+
+        const isValid = validations.every(result => result === true);
+
+        if (!isValid) {
+            // Scroll to first error
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+            return;
+        }
         
         // Add loading effect to submit button
         const submitBtn = this.querySelector('button[type="submit"]');
@@ -1587,7 +1944,7 @@ body {
         }, 300);
     });
 
-    // Auto radio button updates (keeping original functionality)
+    // Auto radio button updates
     function updateRadioButton(lakiInputId, perempuanInputId, radioName) {
         const lakiValue = parseInt(document.getElementById(lakiInputId).value) || 0;
         const perempuanValue = parseInt(document.getElementById(perempuanInputId).value) || 0;
@@ -1624,7 +1981,7 @@ body {
         updateRadioButton(field.lakiId, field.perempuanId, field.radioName);
     });
 
-    // Smooth scrolling for form sections
+    // Smooth scrolling and effects
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize conditional field styles
         document.querySelectorAll('.conditional-field').forEach(field => {
@@ -1667,30 +2024,10 @@ body {
 
         // Form validation feedback
         document.querySelectorAll('input, select, textarea').forEach(input => {
-            input.addEventListener('blur', function() {
-                if (this.checkValidity()) {
-                    this.style.borderColor = 'var(--success-green)';
-                } else {
-                    this.style.borderColor = 'var(--error-red)';
-                }
-            });
-
             input.addEventListener('focus', function() {
                 this.style.borderColor = 'var(--accent-blue)';
             });
         });
     });
-
-    // Add CSS animation for ripple effect
-    const pelaporanStyle = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
 </script>
 @endsection
